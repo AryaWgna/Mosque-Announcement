@@ -1,0 +1,26 @@
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nextjs_masjid
+    expose:
+      - "3000"
+    volumes:
+      - .:/app
+      - node_modules:/app/node_modules
+    networks:
+      - masjid-net
+    environment:
+      - WATCHPACK_POLLING=true
+      - CHOKIDAR_USEPOLLING=true
+    extra_hosts:
+      - "masjid.test:host-gateway"
+      - "db.masjid.test:host-gateway"
+
+volumes:
+  node_modules:
+
+networks:
+  masjid-net:
+    external: true

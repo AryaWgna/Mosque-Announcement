@@ -1,0 +1,34 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_masjid
+    environment:
+      MYSQL_ROOT_PASSWORD: psswrd123
+      MYSQL_DATABASE: masjid_db
+      MYSQL_USER: user_masjid
+      MYSQL_PASSWORD: user123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_masjid_data:/var/lib/mysql
+    networks:
+      - masjid-net
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin_masjid
+    expose:
+      - "80"
+    environment:
+      PMA_HOST: mysql_masjid
+    networks:
+      - masjid-net
+
+volumes:
+  mysql_masjid_data:
+
+networks:
+  masjid-net:
+    external: true

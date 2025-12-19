@@ -1,0 +1,33 @@
+# System
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+vendor/
+
+# Build
+.next/
+build/
+dist/
+out/
+
+# Laravel
+/api-mosque-announcement/mosque-announcement-api/storage/*.key
+/api-mosque-announcement/mosque-announcement-api/public/storage
+/api-mosque-announcement/mosque-announcement-api/public/hot
+/api-mosque-announcement/mosque-announcement-api/.phpunit.result.cache
+
+# Docker
+docker-compose.override.yml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
