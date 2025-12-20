@@ -4,6 +4,7 @@ services:
   mysql:
     image: mysql:8.0
     container_name: mysql_masjid
+    restart: always
     environment:
       MYSQL_ROOT_PASSWORD: psswrd123
       MYSQL_DATABASE: masjid_db
@@ -19,6 +20,7 @@ services:
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: phpmyadmin_masjid
+    restart: always
     expose:
       - "80"
     environment:

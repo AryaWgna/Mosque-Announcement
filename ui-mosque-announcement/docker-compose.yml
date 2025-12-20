@@ -4,6 +4,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: nextjs_masjid
+    restart: always
     expose:
       - "3000"
     volumes:

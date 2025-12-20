@@ -10,7 +10,7 @@ services:
       - ./certs:/etc/nginx/certs:ro
     networks:
       - masjid-net
-    restart: unless-stopped
+    restart: always
 
 networks:
   masjid-net:

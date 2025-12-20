@@ -4,6 +4,7 @@ services:
   assets:
     image: nginx:alpine
     container_name: assets_server_masjid
+    restart: always
     expose:
       - "80"
     volumes:
