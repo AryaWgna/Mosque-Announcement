@@ -120,7 +120,24 @@ cp .env.example .env
 ```
 *Edit file `.env` jika perlu, namun defaultnya sudah cukup untuk development.*
 
-### Langkah 4: Jalankan Aplikasi
+### Langkah 4: Setup SSL (Wajib untuk HTTPS)
+Aplikasi ini menggunakan **HTTPS** via Nginx. Anda perlu membuat sertifikat SSL lokal agar gateway berjalan normal.
+
+1.  **Install mkcert:**
+    *   **Windows:** `choco install mkcert` (via Chocolatey)
+    *   **Mac/Linux:** `brew install mkcert` atau cek dokumentasi resmi.
+
+2.  **Generate Sertifikat:**
+    Jalankan perintah ini di terminal (root project):
+    ```bash
+    mkcert -install
+    cd gateway-mosque-announcement/nginx/certs
+    mkcert masjid.test db.masjid.test localhost 127.0.0.1 ::1
+    cd ../../..
+    ```
+    *Ini akan membuat file `masjid.test+5.pem` dan key-nya di folder yang benar.*
+
+### Langkah 5: Jalankan Aplikasi
 Jalankan perintah berikut secara berurutan untuk menghindari error koneksi.
 
 **1. Jalankan Database:**
@@ -173,8 +190,8 @@ Agar bisa diakses via `masjid.test`, tambahkan ini ke file `C:\Windows\System32\
 ## 📖 Cara Penggunaan (User Guide)
 
 ### Akses Aplikasi
-*   **Halaman Utama (Publik):** Buka `http://masjid.test`
-*   **Halaman Admin:** Buka `http://masjid.test/login`
+*   **Halaman Utama (Publik):** Buka `https://masjid.test`
+*   **Halaman Admin:** Buka `https://masjid.test/login`
 
 ### Login Admin
 Gunakan akun default berikut untuk masuk:
