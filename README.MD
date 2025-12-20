@@ -72,6 +72,20 @@ graph TD
 4.  **Database (MySQL)**: Tempat penyimpanan data pengumuman dan user.
 5.  **Asset Server**: Server khusus untuk melayani file gambar dan video agar lebih cepat.
 
+### 📦 Detail Container Docker
+
+Berikut adalah daftar container yang berjalan dalam sistem ini beserta fungsinya:
+
+| Nama Container | Image Base | Port Internal | Fungsi Utama |
+| :--- | :--- | :--- | :--- |
+| **`nginx_gateway_masjid`** | `nginx:alpine` | `80`, `443` | **Reverse Proxy**. Mengatur lalu lintas request dari user. Jika user minta halaman web, diarahkan ke Frontend. Jika minta data, diarahkan ke API. Juga menangani SSL (HTTPS). |
+| **`nextjs_masjid`** | `node:18-alpine` | `3000` | **Frontend UI**. Menjalankan aplikasi Next.js. Container ini merender halaman web yang dilihat user. |
+| **`nginx_api_masjid`** | `nginx:alpine` | `80` | **Web Server API**. Melayani request HTTP untuk aplikasi Laravel. Bertugas meneruskan request PHP ke container `php_fpm_masjid`. |
+| **`php_fpm_masjid`** | `php:8.2-fpm` | `9000` | **PHP Processor**. Mesin utama yang mengeksekusi kode PHP (Laravel). Menerima perintah dari Nginx API dan mengolah logika bisnis. |
+| **`mysql_masjid`** | `mysql:8.0` | `3306` | **Database Server**. Tempat menyimpan semua data: user, pengumuman, jadwal sholat, dll. Data disimpan persisten di volume docker. |
+| **`phpmyadmin_masjid`** | `phpmyadmin` | `80` | **DB Manager**. Antarmuka visual untuk mengelola database MySQL. Memudahkan admin mengecek data mentah tanpa coding. |
+| **`assets_server_masjid`** | `nginx:alpine` | `80` | **Static File Server**. Khusus melayani file statis (gambar/video) yang diupload. Dipisahkan agar beban server utama lebih ringan. |
+
 ---
 
 ## 🛠️ Teknologi yang Digunakan (Tech Stack)
