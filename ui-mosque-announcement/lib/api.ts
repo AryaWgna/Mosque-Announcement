@@ -25,7 +25,8 @@ export interface FetchAnnouncementsParams {
 }
 
 export async function fetchAnnouncements(
-    params: FetchAnnouncementsParams = {}
+    params: FetchAnnouncementsParams = {},
+    token?: string
 ): Promise<AnnouncementsResponse | null> {
     try {
         const {
@@ -37,6 +38,11 @@ export async function fetchAnnouncements(
             category = '',
         } = params;
 
+        const headers: Record<string, string> = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await api.get<AnnouncementsResponse>('/announcements', {
             params: {
                 page,
@@ -46,6 +52,7 @@ export async function fetchAnnouncements(
                 search,
                 category,
             },
+            headers,
         });
 
         return response.data;
@@ -244,6 +251,33 @@ export async function updatePrayerTimes(
             };
         }
         console.error('Update prayer times error:', error);
+        return {
+            success: false,
+            message: 'Terjadi kesalahan jaringan. Silakan coba lagi.',
+        };
+    }
+}
+
+export async function refreshPrayerTimes(
+    token: string
+): Promise<{ success: boolean; message?: string; data?: any }> {
+    try {
+        const response = await axios.post(`${API_BASE_URL}/prayer-times/refresh`, {}, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+        });
+
+        return { success: true, data: response.data };
+    } catch (error) {
+        if (error instanceof AxiosError) {
+            return {
+                success: false,
+                message: error.response?.data?.message || 'Gagal memperbarui jadwal sholat dari API',
+            };
+        }
+        console.error('Refresh prayer times error:', error);
         return {
             success: false,
             message: 'Terjadi kesalahan jaringan. Silakan coba lagi.',

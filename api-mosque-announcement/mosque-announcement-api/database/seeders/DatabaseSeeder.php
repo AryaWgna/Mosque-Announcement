@@ -46,7 +46,7 @@ class DatabaseSeeder extends Seeder
             [
                 'title' => 'Jadwal Sholat Jumat',
                 'content' => '<p>Assalamu\'alaikum Warahmatullahi Wabarakatuh</p><p>Mengingatkan kepada seluruh jamaah bahwa sholat Jumat akan dilaksanakan pada pukul <strong>11:30 WIB</strong>.</p><p><strong>Khatib:</strong> Ustadz Ahmad Maulana</p><p>Mohon untuk hadir tepat waktu.</p><p>Wassalamu\'alaikum Warahmatullahi Wabarakatuh</p>',
-                'category' => 'imam_khatib',
+                'category' => 'jadwal_sholat',
                 'is_active' => true,
                 'publish_at' => now(),
             ],
@@ -81,7 +81,7 @@ class DatabaseSeeder extends Seeder
             [
                 'title' => 'Santunan Anak Yatim',
                 'content' => '<p>Alhamdulillah, masjid akan mengadakan kegiatan <strong>Santunan Anak Yatim</strong> pada:</p><p>📅 Hari/Tanggal: Minggu, 28 Desember 2025<br>🕐 Waktu: 08.00 - 11.00 WIB<br>📍 Tempat: Aula Masjid</p><p>Bagi jamaah yang ingin berpartisipasi, dapat menyalurkan bantuan ke secretariat masjid.</p>',
-                'category' => 'sosial',
+                'category' => 'donasi',
                 'is_active' => true,
                 'publish_at' => now(),
             ],

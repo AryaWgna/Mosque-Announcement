@@ -28,12 +28,13 @@ export default function CreateAnnouncementPage() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState('');
     const [darkMode, setDarkMode] = useState(false);
-    const [currentTime, setCurrentTime] = useState(new Date());
+    const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [user, setUser] = useState<User | null>(null);
     const [loggingOut, setLoggingOut] = useState(false);
 
     const loadCategories = useCallback(async () => {
-        const data = await fetchAnnouncements({ per_page: 1 });
+        const token = localStorage.getItem('auth_token');
+        const data = await fetchAnnouncements({ per_page: 1 }, token || undefined);
         if (data && data.categories) {
             setCategories(data.categories);
         }
@@ -65,6 +66,8 @@ export default function CreateAnnouncementPage() {
     }, [router, loadCategories]);
 
     useEffect(() => {
+        // Set initial time on client-side only
+        setCurrentTime(new Date());
         const timer = setInterval(() => {
             setCurrentTime(new Date());
         }, 1000);
@@ -225,7 +228,9 @@ export default function CreateAnnouncementPage() {
 
                 <div className="px-6 py-4 bg-white/10">
                     <p className="text-xs text-emerald-200">Waktu Sekarang</p>
-                    <p className="text-2xl font-bold clock-display">{formatTime(currentTime)}</p>
+                    <p className="text-2xl font-bold clock-display" suppressHydrationWarning>
+                        {currentTime ? formatTime(currentTime) : '--:--:--'}
+                    </p>
                 </div>
 
                 <nav className="mt-4">

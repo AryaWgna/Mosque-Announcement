@@ -16,12 +16,25 @@ class AnnouncementController extends Controller
     {
         $query = Announcement::query();
 
+        // Filter by publish_at - only show published announcements (where publish_at is null or past)
+        // Also filter by is_active - only show active announcements
+        // Skip these filters for admin requests (when user is authenticated)
+        if (!$request->user()) {
+            $query->where(function ($q) {
+                $q->whereNull('publish_at')
+                    ->orWhere('publish_at', '<=', now());
+            });
+
+            // Only show active announcements for public view
+            $query->where('is_active', true);
+        }
+
         // Search functionality
         if ($request->has('search') && $request->search) {
             $searchTerm = $request->search;
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('title', 'like', "%{$searchTerm}%")
-                  ->orWhere('content', 'like', "%{$searchTerm}%");
+                    ->orWhere('content', 'like', "%{$searchTerm}%");
             });
         }
 
@@ -38,7 +51,7 @@ class AnnouncementController extends Controller
         // Sorting functionality
         $sortBy = $request->get('sort_by', 'created_at');
         $sortOrder = $request->get('sort_order', 'desc');
-        
+
         $allowedSortFields = ['id', 'title', 'created_at', 'updated_at', 'publish_at', 'is_active', 'category'];
         if (!in_array($sortBy, $allowedSortFields)) {
             $sortBy = 'created_at';
@@ -52,7 +65,7 @@ class AnnouncementController extends Controller
 
         // Pagination
         $perPage = $request->get('per_page', 15);
-        $perPage = min(max((int)$perPage, 1), 100);
+        $perPage = min(max((int) $perPage, 1), 100);
 
         $announcements = $query->paginate($perPage);
 
@@ -214,11 +227,16 @@ class AnnouncementController extends Controller
         }
 
         // Update other fields
-        if (isset($validated['title'])) $announcement->title = $validated['title'];
-        if (isset($validated['content'])) $announcement->content = $validated['content'];
-        if (isset($validated['category'])) $announcement->category = $validated['category'];
-        if (array_key_exists('publish_at', $validated)) $announcement->publish_at = $validated['publish_at'];
-        if (isset($validated['is_active'])) $announcement->is_active = $validated['is_active'];
+        if (isset($validated['title']))
+            $announcement->title = $validated['title'];
+        if (isset($validated['content']))
+            $announcement->content = $validated['content'];
+        if (isset($validated['category']))
+            $announcement->category = $validated['category'];
+        if (array_key_exists('publish_at', $validated))
+            $announcement->publish_at = $validated['publish_at'];
+        if (isset($validated['is_active']))
+            $announcement->is_active = $validated['is_active'];
 
         $announcement->save();
 

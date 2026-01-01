@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { fetchPrayerTimes, updatePrayerTimes, logout } from '@/lib/api';
+import { fetchPrayerTimes, updatePrayerTimes, refreshPrayerTimes, logout } from '@/lib/api';
 import { PrayerTimes } from '@/types/prayerTimes';
 import { User } from '@/types/auth';
 import MosqueAlert from '@/components/MosqueAlert';
@@ -20,13 +20,16 @@ export default function PrayerTimesPage() {
         jumat: '11:30',
         imsak: '04:20',
     });
+    const [prayerSource, setPrayerSource] = useState<string>('');
+    const [prayerLocation, setPrayerLocation] = useState<string>('');
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
+    const [refreshing, setRefreshing] = useState(false);
     const [loggingOut, setLoggingOut] = useState(false);
     const [success, setSuccess] = useState('');
     const [error, setError] = useState('');
     const [darkMode, setDarkMode] = useState(false);
-    const [currentTime, setCurrentTime] = useState(new Date());
+    const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [nextPrayer, setNextPrayer] = useState<string>('');
 
     const loadPrayerTimes = useCallback(async () => {
@@ -34,6 +37,8 @@ export default function PrayerTimesPage() {
         const data = await fetchPrayerTimes();
         if (data && data.success) {
             setPrayerTimes(data.data);
+            setPrayerSource(data.source || '');
+            setPrayerLocation(data.location || '');
         }
         setLoading(false);
     }, []);
@@ -64,6 +69,8 @@ export default function PrayerTimesPage() {
     }, [router, loadPrayerTimes]);
 
     useEffect(() => {
+        // Set initial time on client-side only
+        setCurrentTime(new Date());
         const timer = setInterval(() => {
             setCurrentTime(new Date());
         }, 1000);
@@ -71,6 +78,7 @@ export default function PrayerTimesPage() {
     }, []);
 
     useEffect(() => {
+        if (!currentTime) return;
         const now = currentTime;
         const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
@@ -118,6 +126,32 @@ export default function PrayerTimesPage() {
         }
 
         setSaving(false);
+    };
+
+    const handleRefresh = async () => {
+        setRefreshing(true);
+        setSuccess('');
+        setError('');
+
+        const token = localStorage.getItem('auth_token');
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+
+        const result = await refreshPrayerTimes(token);
+
+        if (result.success) {
+            setPrayerTimes(result.data.data);
+            setPrayerSource(result.data.source || '');
+            setPrayerLocation(result.data.location || '');
+            setSuccess('Jadwal sholat berhasil diperbarui dari API');
+            setTimeout(() => setSuccess(''), 3000);
+        } else {
+            setError(result.message || 'Gagal memperbarui jadwal sholat dari API');
+        }
+
+        setRefreshing(false);
     };
 
     const handleLogout = async () => {
@@ -201,7 +235,9 @@ export default function PrayerTimesPage() {
 
                 <div className="px-6 py-4 bg-white/10">
                     <p className="text-xs text-emerald-200">Waktu Sekarang</p>
-                    <p className="text-2xl font-bold clock-display">{formatTime(currentTime)}</p>
+                    <p className="text-2xl font-bold clock-display" suppressHydrationWarning>
+                        {currentTime ? formatTime(currentTime) : '--:--:--'}
+                    </p>
                     {nextPrayer && (
                         <p className="text-xs text-amber-300 mt-1">
                             Sholat berikutnya: {nextPrayer.charAt(0).toUpperCase() + nextPrayer.slice(1)}
@@ -244,7 +280,59 @@ export default function PrayerTimesPage() {
             <div className="ml-64 p-8">
                 <div className="mb-8">
                     <h1 className={`text-2xl font-bold ${darkMode ? 'text-white' : 'text-gray-900'}`}>Jadwal Sholat</h1>
-                    <p className={darkMode ? 'text-slate-400' : 'text-gray-600'}>Atur jadwal waktu sholat di masjid</p>
+                    <p className={darkMode ? 'text-slate-400' : 'text-gray-600'}>Jadwal waktu sholat untuk Masjid Al-Ikhlas</p>
+                </div>
+
+                {/* Location Info Card */}
+                <div className={`max-w-2xl mb-6 rounded-xl shadow-sm border p-4 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-100'}`}>
+                    <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className={`w-10 h-10 rounded-full flex items-center justify-center text-xl ${darkMode ? 'bg-blue-900/50' : 'bg-blue-100'}`}>
+                                📍
+                            </div>
+                            <div>
+                                <p className={`text-sm font-medium ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                                    {prayerLocation || 'Bogor, Indonesia'}
+                                </p>
+                                <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>
+                                    {prayerSource === 'api' && '✅ Sumber: Aladhan API (Kemenag RI)'}
+                                    {prayerSource === 'database' && '💾 Sumber: Database Lokal'}
+                                    {prayerSource === 'default' && '⚙️ Sumber: Default'}
+                                    {!prayerSource && 'Memuat sumber data...'}
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            type="button"
+                            onClick={handleRefresh}
+                            disabled={refreshing}
+                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center gap-2 ${darkMode
+                                ? 'bg-blue-600 hover:bg-blue-700 text-white disabled:bg-blue-800'
+                                : 'bg-blue-500 hover:bg-blue-600 text-white disabled:bg-blue-300'
+                                } disabled:cursor-not-allowed`}
+                        >
+                            {refreshing ? (
+                                <>
+                                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                                    </svg>
+                                    <span>Memperbarui...</span>
+                                </>
+                            ) : (
+                                <>
+                                    <span>🔄</span>
+                                    <span>Refresh dari API</span>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                    {prayerSource === 'api' && (
+                        <div className={`mt-3 p-3 rounded-lg text-xs ${darkMode ? 'bg-emerald-900/30 text-emerald-300' : 'bg-emerald-50 text-emerald-700'}`}>
+                            <strong>ℹ️ Info:</strong> Jadwal sholat diambil otomatis dari API Aladhan dengan metode perhitungan Kementerian Agama RI.
+                            Anda hanya perlu mengatur waktu Sholat Jum&apos;at secara manual.
+                        </div>
+                    )}
                 </div>
 
                 <form onSubmit={handleSubmit} className="max-w-2xl">
@@ -297,7 +385,9 @@ export default function PrayerTimesPage() {
                     <div className="bg-gradient-to-br from-emerald-600 to-emerald-800 rounded-xl p-6 text-white">
                         <h3 className="text-xl font-bold mb-4 text-center flex items-center justify-center gap-2">
                             🕐 Jadwal Sholat Hari Ini
-                            <span className="text-xs font-normal px-2 py-1 bg-amber-500 rounded-full">{formatTime(currentTime)}</span>
+                            <span className="text-xs font-normal px-2 py-1 bg-amber-500 rounded-full" suppressHydrationWarning>
+                                {currentTime ? formatTime(currentTime) : '--:--:--'}
+                            </span>
                         </h3>
                         <div className="grid grid-cols-3 gap-4">
                             {prayerLabels.slice(1, 7).map(({ key, label }) => (

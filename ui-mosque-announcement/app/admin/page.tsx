@@ -18,7 +18,7 @@ export default function AdminDashboard() {
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [darkMode, setDarkMode] = useState(false);
-    const [currentTime, setCurrentTime] = useState(new Date());
+    const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [pagination, setPagination] = useState({
         current_page: 1,
         per_page: 10,
@@ -63,6 +63,8 @@ export default function AdminDashboard() {
 
     // Real-time clock
     useEffect(() => {
+        // Set initial time on client-side only
+        setCurrentTime(new Date());
         const timer = setInterval(() => {
             setCurrentTime(new Date());
         }, 1000);
@@ -71,11 +73,12 @@ export default function AdminDashboard() {
 
     const loadAnnouncements = async () => {
         setLoading(true);
+        const token = localStorage.getItem('auth_token');
         const data = await fetchAnnouncements({
             page: currentPage,
             per_page: 10,
             search: searchQuery,
-        });
+        }, token || undefined);
 
         if (data && data.success) {
             setAnnouncements(data.data);
@@ -199,7 +202,9 @@ export default function AdminDashboard() {
                 {/* Current Time */}
                 <div className="px-6 py-4 bg-white/10">
                     <p className="text-xs text-emerald-200">Waktu Sekarang</p>
-                    <p className="text-2xl font-bold clock-display">{formatTime(currentTime)}</p>
+                    <p className="text-2xl font-bold clock-display" suppressHydrationWarning>
+                        {currentTime ? formatTime(currentTime) : '--:--:--'}
+                    </p>
                 </div>
 
                 <nav className="mt-4">

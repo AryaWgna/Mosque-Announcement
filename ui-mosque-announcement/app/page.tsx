@@ -12,6 +12,7 @@ export default function Home() {
     const [prayerTimes, setPrayerTimes] = useState<PrayerTimes | null>(null);
     const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [nextPrayer, setNextPrayer] = useState<string>('');
+    const [prayerLocation, setPrayerLocation] = useState<string>('');
     const [darkMode, setDarkMode] = useState(false);
     const [isLoggedIn, setIsLoggedIn] = useState(false);
     const [isClient, setIsClient] = useState(false);
@@ -152,6 +153,7 @@ export default function Home() {
         const data = await fetchPrayerTimes();
         if (data && data.success) {
             setPrayerTimes(data.data);
+            setPrayerLocation(data.location || 'Bogor, Indonesia');
         }
     };
 
@@ -265,14 +267,19 @@ export default function Home() {
                 {/* Prayer Times Section */}
                 {prayerTimes && (
                     <div className="mb-8 animate-fadeIn">
-                        <h2 className={`text-2xl font-bold mb-4 flex items-center gap-2 ${darkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>
-                            🕐 Jadwal Sholat Hari Ini
-                            {nextPrayer && (
-                                <span className={`text-sm font-normal px-3 py-1 rounded-full ${darkMode ? 'bg-amber-900/50 text-amber-300' : 'bg-amber-100 text-amber-700'}`}>
-                                    Sholat berikutnya: {nextPrayer.charAt(0).toUpperCase() + nextPrayer.slice(1)}
-                                </span>
-                            )}
-                        </h2>
+                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+                            <h2 className={`text-2xl font-bold flex items-center gap-2 ${darkMode ? 'text-emerald-400' : 'text-emerald-800'}`}>
+                                🕐 Jadwal Sholat Hari Ini
+                                {nextPrayer && (
+                                    <span className={`text-sm font-normal px-3 py-1 rounded-full ${darkMode ? 'bg-amber-900/50 text-amber-300' : 'bg-amber-100 text-amber-700'}`}>
+                                        Sholat berikutnya: {nextPrayer.charAt(0).toUpperCase() + nextPrayer.slice(1)}
+                                    </span>
+                                )}
+                            </h2>
+                            <span className={`text-xs px-3 py-1 rounded-full flex items-center gap-1 ${darkMode ? 'bg-blue-900/50 text-blue-300' : 'bg-blue-100 text-blue-700'}`}>
+                                📍 {prayerLocation}
+                            </span>
+                        </div>
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
                             {[
                                 { name: 'Subuh', key: 'subuh', time: prayerTimes.subuh },
