@@ -38,4 +38,5 @@ Route::middleware('auth:sanctum')->group(function () {
     // Prayer times management (protected)
     Route::put('/prayer-times', [PrayerTimeController::class, 'update']);
     Route::post('/prayer-times/refresh', [PrayerTimeController::class, 'refresh']);
+    Route::post('/prayer-times/reset-jumat', [PrayerTimeController::class, 'resetJumat']);
 });

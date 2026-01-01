@@ -12,7 +12,8 @@ export interface PrayerTimes {
 export interface PrayerTimesResponse {
     success: boolean;
     data: PrayerTimes;
-    source?: 'api' | 'database' | 'default';
+    source?: 'api' | 'myquran' | 'aladhan' | 'database' | 'default';
+    jumat_source?: 'auto' | 'manual';
     location?: string;
     coordinates?: {
         latitude: number;

@@ -31,6 +31,7 @@ export default function PrayerTimesPage() {
     const [darkMode, setDarkMode] = useState(false);
     const [currentTime, setCurrentTime] = useState<Date | null>(null);
     const [nextPrayer, setNextPrayer] = useState<string>('');
+    const [jumatSource, setJumatSource] = useState<string>('auto');
 
     const loadPrayerTimes = useCallback(async () => {
         setLoading(true);
@@ -39,6 +40,7 @@ export default function PrayerTimesPage() {
             setPrayerTimes(data.data);
             setPrayerSource(data.source || '');
             setPrayerLocation(data.location || '');
+            setJumatSource(data.jumat_source || 'auto');
         }
         setLoading(false);
     }, []);
@@ -206,7 +208,7 @@ export default function PrayerTimesPage() {
         { key: 'ashar', label: 'Ashar', icon: '🌤️' },
         { key: 'maghrib', label: 'Maghrib', icon: '🌇' },
         { key: 'isya', label: 'Isya', icon: '🌃' },
-        { key: 'jumat', label: "Sholat Jum'at", icon: '🕌' },
+        { key: 'jumat', label: "Sholat Jum'at", icon: '🕌', isJumat: true },
     ];
 
     if (loading) {
@@ -295,7 +297,9 @@ export default function PrayerTimesPage() {
                                     {prayerLocation || 'Bogor, Indonesia'}
                                 </p>
                                 <p className={`text-xs ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>
-                                    {prayerSource === 'api' && '✅ Sumber: Aladhan API (Kemenag RI)'}
+                                    {prayerSource === 'myquran' && '✅ Sumber: MyQuran API (Kemenag RI)'}
+                                    {prayerSource === 'aladhan' && '✅ Sumber: Aladhan API (Kemenag RI)'}
+                                    {prayerSource === 'api' && '✅ Sumber: API (Kemenag RI)'}
                                     {prayerSource === 'database' && '💾 Sumber: Database Lokal'}
                                     {prayerSource === 'default' && '⚙️ Sumber: Default'}
                                     {!prayerSource && 'Memuat sumber data...'}
@@ -327,10 +331,15 @@ export default function PrayerTimesPage() {
                             )}
                         </button>
                     </div>
-                    {prayerSource === 'api' && (
+                    {(prayerSource === 'myquran' || prayerSource === 'aladhan' || prayerSource === 'api') && (
                         <div className={`mt-3 p-3 rounded-lg text-xs ${darkMode ? 'bg-emerald-900/30 text-emerald-300' : 'bg-emerald-50 text-emerald-700'}`}>
-                            <strong>ℹ️ Info:</strong> Jadwal sholat diambil otomatis dari API Aladhan dengan metode perhitungan Kementerian Agama RI.
-                            Anda hanya perlu mengatur waktu Sholat Jum&apos;at secara manual.
+                            <strong>ℹ️ Info:</strong> Jadwal sholat diambil <strong>otomatis</strong> dari {prayerSource === 'myquran' ? 'MyQuran.com' : 'Aladhan'} API dengan metode perhitungan Kementerian Agama RI.
+                            Jadwal akan <strong>auto-update setiap hari</strong> pada tengah malam.
+                            <br /><br />
+                            <strong>🕌 Waktu Jum&apos;at:</strong> {jumatSource === 'auto'
+                                ? <span className="text-blue-400">Otomatis (30 menit sebelum Dzuhur)</span>
+                                : <span className="text-amber-400">Manual (diatur admin)</span>
+                            }
                         </div>
                     )}
                 </div>
@@ -350,7 +359,7 @@ export default function PrayerTimesPage() {
 
                     <div className={`rounded-xl shadow-sm border p-6 ${darkMode ? 'bg-slate-800 border-slate-700' : 'bg-white border-gray-100'}`}>
                         <div className="grid gap-6">
-                            {prayerLabels.map(({ key, label, icon }) => (
+                            {prayerLabels.map(({ key, label, icon, isJumat }) => (
                                 <div key={key} className="flex items-center">
                                     <div className={`w-12 h-12 rounded-full flex items-center justify-center text-2xl mr-4 ${nextPrayer === key ? 'bg-amber-500 text-white animate-pulse' : darkMode ? 'bg-emerald-900/50' : 'bg-emerald-100'}`}>
                                         {icon}
@@ -359,14 +368,17 @@ export default function PrayerTimesPage() {
                                         <label className={`block text-sm font-medium mb-1 ${darkMode ? 'text-slate-300' : 'text-gray-700'}`}>
                                             {label}
                                             {nextPrayer === key && <span className="ml-2 text-xs text-amber-500">(Berikutnya)</span>}
+                                            {isJumat && jumatSource === 'auto' && <span className="ml-2 text-xs bg-blue-500 text-white px-2 py-0.5 rounded-full">Auto</span>}
+                                            {isJumat && jumatSource === 'manual' && <span className="ml-2 text-xs bg-amber-500 text-white px-2 py-0.5 rounded-full">Manual</span>}
                                         </label>
                                         <input
                                             type="time"
                                             value={prayerTimes[key as keyof PrayerTimes] || ''}
                                             onChange={(e) => setPrayerTimes((prev) => ({ ...prev, [key]: e.target.value }))}
-                                            required={key !== 'imsak'}
+                                            required={key !== 'imsak' && key !== 'jumat'}
                                             className={`w-full px-4 py-3 rounded-xl border focus:ring-2 focus:ring-emerald-200 transition-all outline-none text-lg font-semibold ${darkMode ? 'bg-slate-700 border-slate-600 text-white focus:border-emerald-500' : 'bg-white border-gray-200 text-gray-900 focus:border-emerald-500'}`}
                                         />
+                                        {isJumat && <p className={`text-xs mt-1 ${darkMode ? 'text-slate-400' : 'text-gray-500'}`}>Kosongkan untuk otomatis 30 menit sebelum Dzuhur</p>}
                                     </div>
                                 </div>
                             ))}
